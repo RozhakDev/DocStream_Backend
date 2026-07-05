@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Environment Variables
+.env
+
+# Build / Cache
+.cache/
+.pytest_cache/
+.mypy_cache/
+build/
+dist/
+.ruff_cache/
+
+# AI Agent
+.knowledge-base/
+
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite3
+
+# Uploads / Storage
+uploads/
+storage/
+tmp/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-data/
+
+# Alembic
+alembic/versions/*.pyc
