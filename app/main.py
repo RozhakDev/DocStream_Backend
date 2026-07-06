@@ -4,6 +4,7 @@ from app.core.config import settings
 from app.modules.auth.router import router as auth_router
 from app.modules.folders.router import router as folders_router
 from app.modules.files.router import router as files_router
+from app.modules.shares.router import router as shares_router
 
 def create_app() -> FastAPI:
     app = FastAPI(
@@ -19,6 +20,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router, prefix=settings.API_V1_STR)
     app.include_router(folders_router, prefix=settings.API_V1_STR)
     app.include_router(files_router, prefix=settings.API_V1_STR)
+    app.include_router(shares_router, prefix=settings.API_V1_STR)
     
     return app
 
