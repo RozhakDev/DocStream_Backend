@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
 
 from app.core.config import settings
 from app.modules.auth.router import router as auth_router
@@ -7,12 +9,26 @@ from app.modules.files.router import router as files_router
 from app.modules.shares.router import router as shares_router
 from app.modules.embeds.router import router as embeds_router
 
+from app.middleware.logging import log_requests_middleware
+from app.middleware.ratelimit import rate_limit_middleware
+
 def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.PROJECT_NAME,
         version=settings.VERSION,
         openapi_url=f"{settings.API_V1_STR}/openapi.json"
     )
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    app.middleware("http")(log_requests_middleware)
+    app.middleware("http")(rate_limit_middleware)
 
     @app.get("/")
     def root():
