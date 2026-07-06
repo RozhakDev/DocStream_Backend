@@ -1,6 +1,10 @@
-from fastapi import FastAPI
+import traceback
+
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.core.exceptions import DocStreamException
 
 from app.core.config import settings
 from app.modules.auth.router import router as auth_router
@@ -16,7 +20,9 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.PROJECT_NAME,
         version=settings.VERSION,
-        openapi_url=f"{settings.API_V1_STR}/openapi.json"
+        openapi_url=f"{settings.API_V1_STR}/openapi.json",
+        docs_url="/docs",
+        redoc_url="/redoc"
     )
 
     app.add_middleware(
@@ -30,9 +36,29 @@ def create_app() -> FastAPI:
     app.middleware("http")(log_requests_middleware)
     app.middleware("http")(rate_limit_middleware)
 
-    @app.get("/")
-    def root():
-        return {"message": "Selamat datang di API DocStream", "status": "berjalan"}
+    @app.exception_handler(DocStreamException)
+    async def docstream_exception_handler(request: Request, exc: DocStreamException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+            headers=getattr(exc, "headers", None)
+        )
+    
+    @app.exception_handler(Exception)
+    async def global_exception_handler(request: Request, exc: Exception):
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Terjadi kesalahan pada server. Silakan hubungi administrator."}
+        )
+
+    @app.get("/", tags=["Health Check"])
+    def health_check():
+        return {
+            "app": settings.PROJECT_NAME,
+            "version": settings.VERSION,
+            "status": "berjalan normal"
+        }
     
     app.include_router(auth_router, prefix=settings.API_V1_STR)
     app.include_router(folders_router, prefix=settings.API_V1_STR)

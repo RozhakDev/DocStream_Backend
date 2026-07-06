@@ -19,6 +19,15 @@ if config.config_file_name is not None:
 from app.core.database import Base
 from app.core.config import settings
 
+# Pastikan semua model di-import di sini agar terbaca oleh Base.metadata
+from app.modules.auth.model import User
+from app.modules.files.model import File
+from app.modules.folders.model import Folder
+from app.modules.shares.model import Share
+from app.modules.analytics.model import Analytics
+
+# Override sqlalchemy.url with the URL from our environment settings.DATABASE_URL)
+
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 target_metadata = Base.metadata
