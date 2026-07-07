@@ -56,7 +56,7 @@ async def upload_file(
 
     background_tasks.add_task(
         process_file_after_upload,
-        db=db, file_id=db_file.id, user_id=current_user.id, 
+        file_id=db_file.id, user_id=current_user.id, 
         storage_path=rel_path, file_size=file_size
     )
 
@@ -66,9 +66,15 @@ def delete_file(db: Session, current_user: User, file_id: str):
     file = repository.get_file_by_id(db, file_id)
     _validate_ownership(file, current_user.id)
 
-    storage_service.delete_file_from_disk(file.storage_path)
+    storage_path = file.storage_path
+    file_size = file.file_size
 
-    current_user.storage_used = max(0, (current_user.storage_used or 0) - file.file_size)
+    current_user.storage_used = max(0, (current_user.storage_used or 0) - file_size)
 
     db.delete(file)
     db.commit()
+    
+    try:
+        storage_service.delete_file_from_disk(storage_path)
+    except Exception as e:
+        print(f"Error deleting file from disk: {e}")

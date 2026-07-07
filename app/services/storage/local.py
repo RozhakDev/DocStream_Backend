@@ -21,10 +21,19 @@ async def save_upload_file(user_id: str, upload_file: UploadFile) -> tuple[str, 
     rel_path = os.path.join(rel_dir, disk_filename)
     abs_path = os.path.join(abs_dir, disk_filename)
 
+    written = 0
     try:
         with open(abs_path, "wb") as buffer:
             while chunk := await upload_file.read(1024 * 1024):  # Baca per 1 MB
+                written += len(chunk)
+                if written > settings.MAX_UPLOAD_SIZE:
+                    raise ValueError("Ukuran file melebihi batas maksimal")
                 buffer.write(chunk)
+    except ValueError as e:
+        if os.path.exists(abs_path):
+            os.remove(abs_path)
+        from app.core.exceptions import BadRequestError
+        raise BadRequestError(str(e))
     finally:
         await upload_file.seek(0)
 

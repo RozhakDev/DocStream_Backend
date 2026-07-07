@@ -34,6 +34,12 @@ def get_authorized_file_for_embed(
         if share.password_hash:
             raise ForbiddenError(detail="File dilindungi sandi. Tidak dapat di-embed secara langsung.")
         
+        if share.max_access and share.total_access >= share.max_access:
+            raise ForbiddenError(detail="Link ini telah mencapai batas maksimal akses.")
+            
+        share.total_access += 1
+        db.commit()
+        
         return file
 
     if auth_token:

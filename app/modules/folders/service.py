@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.modules.folders import repository, schema
 from app.core.exceptions import NotFoundError, BadRequestError, ForbiddenError
 from app.modules.auth.model import User
+from app.modules.files.repository import get_user_files
 
 def _validate_ownership(folder, user_id: str):
     if not folder:
@@ -73,6 +74,10 @@ def delete_folder(db: Session, current_user: User, folder_id: str):
 
     if repository.get_subfolders_count(db, folder_id) > 0:
         raise BadRequestError(detail="Folder tidak kosong. Hapus atau pindahkan subfolder terlebih dahulu.")
+    
+    files_in_folder = get_user_files(db, current_user.id, folder_id)
+    if len(files_in_folder) > 0:
+        raise BadRequestError(detail="Folder tidak kosong. Hapus atau pindahkan file terlebih dahulu.")
     
     db.delete(folder)
     db.commit()
