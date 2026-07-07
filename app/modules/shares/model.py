@@ -20,3 +20,7 @@ class Share(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     file = relationship("File")
+
+    @property
+    def has_password(self) -> bool:
+        return self.password_hash is not None

@@ -25,8 +25,10 @@ def access_public_share(db: Session, share_token: str, access_in: schema.ShareAc
     if not share:
         raise NotFoundError(detail="Link tidak valid atau sudah dihapus.")
     
-    if share.expires_at and datetime.now(timezone.utc) > share.expires_at:
-        raise ForbiddenError(detail="Link ini sudah kedaluwarsa.")
+    if share.expires_at:
+        expires_at = share.expires_at.replace(tzinfo=timezone.utc) if share.expires_at.tzinfo is None else share.expires_at
+        if datetime.now(timezone.utc) > expires_at:
+            raise ForbiddenError(detail="Link ini sudah kedaluwarsa.")
     
     if share.max_access and share.total_access >= share.max_access:
         raise ForbiddenError(detail="Link ini telah mencapai batas maksimal akses.")

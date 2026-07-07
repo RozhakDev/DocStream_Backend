@@ -26,8 +26,10 @@ def get_authorized_file_for_embed(
         if not share or share.file_id != file_id:
             raise NotFoundError(detail="Share token tidak valid.")
         
-        if share.expires_at and datetime.now(timezone.utc) > share.expires_at:
-            raise ForbiddenError(detail="Link berbagi sudah kedaluwarsa.")
+        if share.expires_at:
+            expires_at = share.expires_at.replace(tzinfo=timezone.utc) if share.expires_at.tzinfo is None else share.expires_at
+            if datetime.now(timezone.utc) > expires_at:
+                raise ForbiddenError(detail="Link berbagi sudah kedaluwarsa.")
         
         if share.password_hash:
             raise ForbiddenError(detail="File dilindungi sandi. Tidak dapat di-embed secara langsung.")
@@ -44,6 +46,8 @@ def get_authorized_file_for_embed(
             raise UnauthorizedError(detail="Token otentikasi tidak valid atau sudah kedaluwarsa.")
         
         raise ForbiddenError(detail="Anda tidak memiliki izin untuk melihat file ini.")
+    
+    raise UnauthorizedError(detail="Akses ditolak. Token otentikasi atau share token diperlukan.")
     
 def get_absolute_file_path(storage_path: str) -> str:
     path = os.path.join(settings.STORAGE_PATH, storage_path)
